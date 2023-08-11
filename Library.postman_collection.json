@@ -1,0 +1,299 @@
+{
+	"info": {
+		"_postman_id": "726d8391-5c0b-4b12-bcfa-5af6633b6393",
+		"name": "Library",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "19116481"
+	},
+	"item": [
+		{
+			"name": "AddBook",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"pm.collectionVariables.set(\"flag\",false)\r",
+							"var request = JSON.parse(pm.request.body.raw);\r",
+							"var flag;\r",
+							"\r",
+							"let  default_ID =\"\";\r",
+							"//setting book id as collection vairanle\r",
+							"default_ID = jsonData.ID;\r",
+							"   console.log(default_ID);\r",
+							"    pm.collectionVariables.set(\"book_ID\",default_ID);\r",
+							"\r",
+							"function cleanUpScript()\r",
+							"    {\r",
+							"        pm.collectionVariables.set(\"flag\",true);\r",
+							"       const book  = generateBookId();\r",
+							"       pm.collectionVariables.set(\"book_ID\",book);\r",
+							"        //we can call another postman request using this below method\r",
+							"        postman.setNextRequest(\"DeleteBook\");\r",
+							"        \r",
+							"    }\r",
+							"\r",
+							"    function generateBookId()\r",
+							"    {\r",
+							"        const expeted_id = request.isbn + request.aisle;\r",
+							"        console.log(\"Exepected id :\"+expeted_id);\r",
+							"        return expeted_id;\r",
+							"    }\r",
+							"\r",
+							"pm.test(\"Validate Status Code is 200\",function()\r",
+							"{\r",
+							"    try\r",
+							"    {\r",
+							"        pm.response.to.have.status(200);\r",
+							"        pm.expect(jsonData).have.property(\"Msg\");\r",
+							"        pm.expect(jsonData.Msg).to.eql(\"successfully added\");\r",
+							"\r",
+							"    }\r",
+							"    catch(err)\r",
+							"    {       console.log(\"Running Clean up script\");\r",
+							"            cleanUpScript();\r",
+							"            console.log(\"successfully Ran cleanUpScript\");\r",
+							"    }   \r",
+							"\r",
+							"});\r",
+							"pm.test(\"Header Cookies responseTime Validation\",function()\r",
+							"{\r",
+							"    pm.response.to.have.header(\"Connection\");\r",
+							"    pm.expect(pm.response.headers.get(\"Connection\")).to.eql(\"Keep-Alive\");\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(1200);\r",
+							"    pm.expect(pm.response.text()).to.include(\"successfully added\");\r",
+							"});\r",
+							"\r",
+							"   \r",
+							"\r",
+							"pm.test(\"Id logic Validation\",function(){\r",
+							"    const asbn_val = pm.collectionVariables.get(\"isbn\");\r",
+							"    const aisle_val = request.aisle;\r",
+							"    const expeted_id = asbn_val + aisle_val;\r",
+							"\r",
+							"    pm.expect(expeted_id).to.equal(default_ID);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							" const code =  pm.globals.get(\"companyCode\");\r",
+							" const val = pm.variables.replaceIn('{{$randomInt}}');\r",
+							" pm.collectionVariables.set(\"isbn\",code + val);\r",
+							" pm.collectionVariables.set(\"author_name\",\"Rahul shetty yz\")\r",
+							" pm.collectionVariables.set(\"Book_Name\",pm.iterationData.get(\"BookName\"));\r",
+							" pm.collectionVariables.set(\"author_name\",pm.iterationData.get(\"Author\"));\r",
+							" console.log(code+val);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"{{Book_Name}}\",\r\n    \"isbn\": \"{{isbn}}\",\r\n    \"aisle\": \"2310\",\r\n    \"author\": \"{{author_name}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{base_url}}/Library/Addbook.php"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Book",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"console.log(jsonData[0]);\r",
+							"const companyC = jsonData[0].isbn;\r",
+							"const companyNum = jsonData[0].aisle;\r",
+							"const codeBook = companyC+companyNum;\r",
+							"console.log(\"Code is \" +codeBook); \r",
+							"\r",
+							"const schema =\r",
+							"{\r",
+							"  \"type\": \"array\",\r",
+							"  \"items\": [\r",
+							"    {\r",
+							"      \"type\": \"object\",\r",
+							"      \"properties\": {\r",
+							"        \"book_name\": {\r",
+							"          \"type\": \"string\"\r",
+							"        },\r",
+							"        \"isbn\": {\r",
+							"          \"type\": \"string\"\r",
+							"        },\r",
+							"        \"aisle\": {\r",
+							"          \"type\": \"string\"\r",
+							"        },\r",
+							"        \"author\": {\r",
+							"          \"type\": \"string\"\r",
+							"        }\r",
+							"      },\r",
+							"      \"required\": [\r",
+							"        \"book_name\",\r",
+							"        \"isbn\",\r",
+							"        \"aisle\",\r",
+							"        \"author\"\r",
+							"      ]\r",
+							"    }\r",
+							"  ]\r",
+							"};\r",
+							" \r",
+							"\r",
+							"pm.test(\"Validate Status Code is 200\",function()\r",
+							"{\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.expect(jsonData[0]).have.property(\"book_name\");\r",
+							"    pm.expect(jsonData[0].author).to.eql(pm.iterationData.get(\"Author\"));\r",
+							"\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Verify bookID\",function(){\r",
+							"    pm.expect(pm.collectionVariables.get(\"book_ID\")).to.eql(codeBook);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Verify bookID with variables\",function(){\r",
+							"    pm.expect(codeBook).to.eql(pm.collectionVariables.get(\"book_ID\"));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Validate Json Response Schema\",function(){\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/Library/GetBook.php?ID={{book_ID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"Library",
+						"GetBook.php"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "{{book_ID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteBook",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"console.log(jsonData);\r",
+							"\r",
+							"pm.test(\"Validate status response code as 200\",function(){\r",
+							"    pm.response.to.have.status(200);\r",
+							"    console.log(\"Deleteades\")\r",
+							"});\r",
+							"pm.test(\"Validate Delete message\",function(){\r",
+							"    pm.expect(jsonData).to.have.property(\"msg\");\r",
+							"    pm.expect(jsonData.msg).to.eql(\"book is successfully deleted\");\r",
+							"    if(pm.collectionVariables.get(\"flag\")){\r",
+							"        postman.setNextRequest(\"AddBook\");\r",
+							"    }\r",
+							"    \r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ID\" : \"{{book_ID}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{base_url}}/Library/DeleteBook.php"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "isbn",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ID",
+			"value": "{{book_id}}",
+			"type": "string"
+		},
+		{
+			"key": "book_ID",
+			"value": ""
+		},
+		{
+			"key": "author_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Book_Name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "flag",
+			"value": "false",
+			"type": "string"
+		}
+	]
+}
